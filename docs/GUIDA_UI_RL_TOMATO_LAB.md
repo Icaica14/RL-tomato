@@ -210,3 +210,115 @@ Se Playwright non è disponibile, avvia l’app con `npm run dev`, apri il brows
 - `04-episode-replay.png`
 - `05-learning-chart.png`
 - `06-heatmap-modes.png`
+
+## 17. Come leggere il replay episodio
+
+Il pannello **Replay episodio** serve a separare la visualizzazione dalla simulazione live. Quando premi **Visualizza episodio**, compare una seconda griglia, intitolata **Replay visivo dell’episodio**, immediatamente sotto i controlli. Quella griglia è di sola lettura: non cambia la pianta live, non modifica V(s), Q(s,a), conteggi o policy.
+
+Nel replay osserva:
+
+- **START**: la cella da cui è partito l’episodio.
+- **ORA**: la cella del passo replay corrente.
+- **celle visitate**: il percorso accumulato fino a quel passo.
+- **TERM**: la cella terminale, se l’episodio è finito.
+
+Usa **Passo precedente**, **Passo successivo**, **Play** e **Pausa** per ricostruire lentamente la traiettoria. Lo scopo non è vincere la simulazione, ma capire la catena: stato precedente → azione → stato successivo → reward.
+
+## 18. Come leggere il grafico acqua/nutrienti/salute/frutti
+
+Il grafico **Andamento della pianta nell’episodio corrente** cresce passo dopo passo. In Modalità manuale, ogni click su **Non fare nulla**, **Annaffia** o **Fertilizza** aggiunge un punto. In modalità algoritmo, ogni passo dell’agente aggiunge un punto.
+
+- X = passo / giorno dell’episodio.
+- Y = valore della variabile da 0 a 100.
+- Blu = acqua.
+- Viola = nutrienti.
+- Verde = salute.
+- Arancione = frutti.
+
+Se premi **Non fare nulla**, dovresti vedere acqua e nutrienti scendere. Se premi **Annaffia**, l’acqua sale. Se premi **Fertilizza**, salgono i nutrienti. Quando l’episodio termina, quella traiettoria viene congelata e diventa disponibile nel replay.
+
+## 19. Come leggere il grafico di apprendimento
+
+Il grafico **Reward totale per episodio** ha:
+
+- X = episodio.
+- Y = reward totale ottenuta nell’episodio.
+- Ogni barra = un episodio completo.
+
+Se le barre tendono a salire, l’agente sta ottenendo risultati migliori. Se scendono, sta incontrando più penalità o terminali negativi. Se oscillano, non significa per forza che l’app sia sbagliata: con pochi episodi l’esperienza può essere ancora limitata.
+
+## 20. Che cosa significa media mobile della reward
+
+La **Media mobile della reward** è la media degli ultimi N episodi. È utile perché un singolo episodio può essere poco rappresentativo. La finestra può essere 5, 10 o 20 episodi:
+
+- finestra piccola = reagisce velocemente ai cambiamenti;
+- finestra grande = mostra una tendenza più stabile.
+
+Se ci sono meno di N episodi, la UI avvisa che servono più episodi per calcolare una media completa.
+
+## 21. Che cosa significa copertura dell’esperienza
+
+La **Copertura dell’esperienza** non dice che l’agente ha imparato il modello completo. RL Tomato Lab usa metodi model-free: l’agente non costruisce una tabella esplicita delle probabilità di transizione.
+
+La copertura misura invece quanta esperienza empirica è stata raccolta:
+
+- **Stati visitati %**: quanta parte della griglia è stata incontrata almeno una volta.
+- **Coppie stato-azione visitate %**: quante decisioni possibili sono state provate almeno una volta.
+- **Incertezza empirica**: proxy didattico basato su 1 / sqrt(1 + N(s,a)); scende quando aumentano le visite.
+
+È un modo pratico per chiedersi: “Le stime dell’agente sono basate su abbastanza esperienza?”.
+
+## 22. Perché le heatmap sembrano ferme all’inizio
+
+All’inizio V(s), Q(s,a) e i conteggi sono quasi tutti zero. Per questo una heatmap può sembrare piatta. Dopo più passi o episodi:
+
+- la heatmap visite cambia nelle celle attraversate;
+- la heatmap V(s) cambia quando usi TD(0);
+- i valori Q(s,a) cambiano quando usi SARSA o Q-learning.
+
+Se una cella non viene mai visitata, il suo colore nella heatmap visite non cambierà.
+
+## 23. Differenza tra colore della condizione e heatmap del valore
+
+Il **colore della condizione** parla della pianta: verde = favorevole, giallo = attenzione, rosso = pericolo.
+
+La **heatmap del valore V(s)** parla della stima dell’agente: verde = stato che storicamente porta a buoni risultati, rosso = stato che storicamente porta a cattivi risultati.
+
+Queste due cose sono collegate, ma non identiche. Una cella può sembrare buona biologicamente ma avere valore basso se da lì l’agente tende poi a fare azioni sbagliate.
+
+## 24. Perché lo stato può muoversi in diagonale
+
+La griglia ha due assi. Se cambia solo l’acqua, lo stato si muove orizzontalmente. Se cambiano solo i nutrienti, si muove verticalmente. Se cambiano entrambi, lo stato può muoversi in diagonale.
+
+Esempio: **Non fare nulla** fa consumare alla pianta sia acqua sia nutrienti. Quindi lo stato può scendere a sinistra. Questo è un movimento diagonale perché due variabili sono diminuite nello stesso passo.
+
+Regola v1: nessuna transizione educativa deve muoversi di più di un bucket per asse in un singolo passo.
+
+## 25. Perché model-free non significa “mondo casuale”
+
+Model-free non significa che il mondo è casuale. Significa che l’algoritmo non usa una tabella esplicita delle transizioni o delle reward per pianificare. In RL Tomato Lab il mondo è deterministico: date la stessa cella e la stessa azione, la transizione è comprensibile e ripetibile.
+
+La parte “model-free” riguarda il modo in cui l’agente impara: osserva stato, azione, reward e stato successivo, poi corregge V(s) o Q(s,a) senza consultare un modello di pianificazione.
+
+## 26. Esercizio guidato: capire una transizione diagonale
+
+1. Premi **Reset totale**.
+2. Vai in **Modalità manuale**.
+3. Premi **Non fare nulla**.
+4. Guarda acqua e nutrienti diminuire.
+5. Guarda se lo stato si sposta verso sinistra/basso.
+6. Leggi il pannello **Perché lo stato si è spostato così?**.
+7. Apri il grafico dell’episodio e osserva acqua/nutrienti scendere.
+
+Domanda guida: lo spostamento è diagonale perché il metodo è model-free, oppure perché sono cambiate due variabili nello stesso passo? La risposta corretta è la seconda.
+
+## 27. Esercizio guidato: capire perché la heatmap visite cambia
+
+1. Premi **Reset totale**.
+2. Seleziona **Colora celle per frequenza visite**.
+3. Esegui 10 episodi.
+4. Osserva quali celle sono state visitate.
+5. Clicca una cella.
+6. Leggi **Visite stato** e **Visite azione** nell’ispettore cella.
+
+Se una cella rimane chiara o con conteggio zero, significa che l’agente non l’ha incontrata in quegli episodi.

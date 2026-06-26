@@ -74,3 +74,33 @@ Non sono stati aggiunti screenshot inventati: la guida contiene placeholder finc
 ## Cosa resta escluso da v1
 
 Non ci sono meteo, parassiti, transizioni stocastiche, reti neurali o metodi avanzati. La semplicità è intenzionale: serve a rendere osservabile il processo di apprendimento.
+
+
+## Aggiornamento educativo: replay, grafici e heatmap
+
+Questa versione migliora la chiarezza didattica senza aggiungere complessità esterna: l’ambiente resta deterministico e contiene solo acqua, nutrienti, salute e frutti.
+
+Novità principali:
+
+- **Replay visivo dell’episodio**: premi **Visualizza episodio** per aprire una griglia di sola lettura sotto il controllo replay. Il replay mostra START, cella corrente, percorso visitato e terminale.
+- **Grafico dell’episodio corrente**: cresce a ogni azione e mostra Acqua, Nutrienti, Salute e Frutti nel tempo.
+- **Grafico di apprendimento**: ora mostra assi espliciti, reward totale per episodio, durata episodio e **Media mobile della reward** con finestra 5/10/20 episodi.
+- **Copertura dell’esperienza**: misura stati visitati, coppie stato-azione provate e una proxy didattica di incertezza empirica. Non significa che l’agente impari un modello esplicito: i metodi restano model-free.
+- **Heatmap più chiare**: il colore condizione è separato dalla heatmap V(s) e dalla frequenza visite. L’ispettore cella mostra visite, V(s) e Q(s,a).
+- **Spiegazione dei movimenti diagonali**: una transizione diagonale significa che acqua e nutrienti sono cambiati nello stesso passo, non che il mondo sia casuale.
+
+### Come generare dati per grafici e replay
+
+1. Avvia l’app con `npm run dev`.
+2. Premi **Reset totale** se vuoi partire da zero o se il browser contiene vecchi valori locali.
+3. In Modalità manuale premi alcune azioni per far crescere il grafico dell’episodio corrente.
+4. Premi **Esegui un episodio** o **Esegui 100 episodi** per popolare grafici di apprendimento, copertura esperienza, heatmap e replay.
+5. Apri **Replay episodio**, scegli un episodio e premi **Visualizza episodio**.
+
+### Dove approfondire
+
+La guida lunga è in [`docs/GUIDA_UI_RL_TOMATO_LAB.md`](docs/GUIDA_UI_RL_TOMATO_LAB.md). Include esercizi pratici per leggere replay, grafici, heatmap, media mobile, copertura dell’esperienza e transizioni diagonali.
+
+### Nota su localStorage
+
+Se vedi valori vecchi o test precedenti, premi **Reset totale**. La migrazione versione cancella i salvataggi locali obsoleti, ma il reset manuale è utile quando vuoi ricominciare completamente.

@@ -57,3 +57,19 @@ describe('tomato environment', () => {
     expect(importConfig(exportConfig(c))).toEqual(c);
   });
 });
+
+it('diagonal transition explanation appears when both axes change', () => {
+  const c = balancedTomato();
+  const r = stepEnvironment(defaultInitialState, 'do_nothing', c);
+  expect(r.explanation.gridMovement.movementType).toBe('diagonale');
+  expect(r.explanation.gridMovement.simpleExplanation).toContain('diagonale');
+  expect(r.explanation.gridMovement.deltaX).toBe(-1);
+  expect(r.explanation.gridMovement.deltaY).toBe(-1);
+});
+
+it('Do Nothing can move diagonally down-left because both water and nutrients decay', () => {
+  const c = balancedTomato();
+  const r = stepEnvironment(defaultInitialState, 'do_nothing', c);
+  expect(bucketIndex(r.nextState.waterLevel, c.gridSize)).toBeLessThan(bucketIndex(defaultInitialState.waterLevel, c.gridSize));
+  expect(bucketIndex(r.nextState.nutrientLevel, c.gridSize)).toBeLessThan(bucketIndex(defaultInitialState.nutrientLevel, c.gridSize));
+});

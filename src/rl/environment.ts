@@ -103,7 +103,17 @@ export function stepEnvironment(state: PlantState, actionId: ActionId, config: T
   reward = round(reward);
   const from = `acqua ${bucketLabels[previousX]}, nutrienti ${bucketLabels[previousY]}`;
   const to = `acqua ${bucketLabels[cell.x]}, nutrienti ${bucketLabels[cell.y]}`;
-  const movement = `Lo stato si è spostato da [${from}] a [${to}] perché hai scelto "${action.label}".`;
+  const deltaX = cell.x - previousX;
+  const deltaY = cell.y - previousY;
+  const movementType = deltaX === 0 && deltaY === 0 ? 'fermo' : deltaX !== 0 && deltaY !== 0 ? 'diagonale' : deltaX !== 0 ? 'orizzontale' : 'verticale';
+  const simpleMovement = movementType === 'diagonale'
+    ? `Movimento nella griglia: acqua ${deltaX > 0 ? '+' : ''}${deltaX} bucket, nutrienti ${deltaY > 0 ? '+' : ''}${deltaY} bucket. Lo spostamento è diagonale perché sono cambiate entrambe le variabili.`
+    : movementType === 'orizzontale'
+      ? `Movimento nella griglia: acqua ${deltaX > 0 ? '+' : ''}${deltaX} bucket, nutrienti 0 bucket. Lo spostamento è orizzontale perché è cambiata soprattutto l’acqua.`
+      : movementType === 'verticale'
+        ? `Movimento nella griglia: acqua 0 bucket, nutrienti ${deltaY > 0 ? '+' : ''}${deltaY} bucket. Lo spostamento è verticale perché è cambiato soprattutto il livello di nutrienti.`
+        : 'Movimento nella griglia: acqua 0 bucket, nutrienti 0 bucket. Lo stato resta nella stessa cella.';
+  const movement = `Lo stato si è spostato da [${from}] a [${to}] perché hai scelto "${action.label}". ${simpleMovement}`;
   const plainLanguage = `${action.explanation} ${movement} La pianta è entrata in "${cell.label}". ${cell.explanation} ${g.t} La ricompensa è ${reward}. ${terminalReason ?? 'L’episodio continua.'}`;
   return {
     previousState,
@@ -123,6 +133,7 @@ export function stepEnvironment(state: PlantState, actionId: ActionId, config: T
       plainLanguage,
       healthDeltaTotal,
       fruitDeltaTotal,
+      gridMovement: { previousWaterBucket: bucketLabels[previousX], previousNutrientBucket: bucketLabels[previousY], nextWaterBucket: bucketLabels[cell.x], nextNutrientBucket: bucketLabels[cell.y], deltaX, deltaY, movementType, simpleExplanation: simpleMovement },
     },
   };
 }
