@@ -1,0 +1,33 @@
+import { ActionId } from '../types/tomato';
+import { FormulaDetails, QTable } from '../types/rl';
+import { actions } from './valueTables';
+
+export function qLearningUpdate(q: QTable, stateId: string, actionId: ActionId, reward: number, nextStateId: string, done: boolean, alpha: number, gamma: number) {
+  const oldValue = q[stateId][actionId];
+  const vals = q[nextStateId];
+  const bestNextActionId = actions.reduce((b, a) => (vals[a] > vals[b] ? a : b), actions[0]);
+  const nextValue = done ? 0 : vals[bestNextActionId];
+  const target = reward + gamma * nextValue;
+  const error = target - oldValue;
+  const newValue = oldValue + alpha * error;
+  const table = { ...q, [stateId]: { ...q[stateId], [actionId]: newValue } };
+  const formula: FormulaDetails = {
+    algorithm: 'Q-learning',
+    symbolic: "Q(s,a) ← Q(s,a) + α [r + γ max_a' Q(s',a') − Q(s,a)]",
+    numerical: `Q(stato, azione) ← ${oldValue.toFixed(2)} + ${alpha} × [${reward.toFixed(2)} + ${gamma} × ${nextValue.toFixed(2)} − ${oldValue.toFixed(2)}] = ${newValue.toFixed(2)}`,
+    oldValue,
+    reward,
+    gamma,
+    nextValue,
+    target,
+    error,
+    alpha,
+    newValue,
+    stateId,
+    actionId,
+    nextStateId,
+    bestNextActionId,
+    explanation: 'Q-learning è off-policy: aggiorna Q(s,a) come se nello stato successivo venisse scelta la migliore azione stimata.',
+  };
+  return { table, formula };
+}
